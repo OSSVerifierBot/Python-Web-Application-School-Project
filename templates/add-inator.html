@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Inator{% endblock %}
+
+{% block body %}
+<h1>Add a New Inator</h1>
+
+<form method="POST">
+  <div class="form-group">
+    <label for="nameinput">Name of -inator</label>
+    <input class="form-control" id="nameinput" placeholder="Name" name="name">
+  </div>
+  <div class="form-group">
+    <label for="locationinput">Location</label>
+    <input class="form-control" id="locationinput" placeholder="Location" name="location">
+  </div>
+  <div class="form-group">
+    <label for="conditioninput">Condition</label>
+    <select class="form-control" id="conditioninput" name="condition">
+      <option value="1">Hopelessly Broken</option>
+      <option value="2">Needs Repair</option>
+      <option value="3" selected>Kinda Works</option>
+      <option value="4">Usually Works</option>
+      <option value="5">Actually Works</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="descriptioninput">Description</label>
+    <textarea class="form-control" id="descriptioninput" name="description" rows="3"></textarea>
+    <small id="descriptionhelp" class="form-text text-muted">Include a descrition of its appearance as well as its functionality.</small>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

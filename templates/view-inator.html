@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ inator.name }} Details{% endblock %}
+
+{% block body %}
+<h1 style="display:inline">Details for {{ inator.name }}</h1>
+<a class="pull-right btn btn-danger" href="/delete/{{ inator.ident}}/">Delete {{inator.name}}</a>
+
+<table class="table">
+  <tbody>
+    <tr>
+      <th>Name</th>
+      <td>{{ inator.name }}</td>
+    </tr>
+    <tr>
+      <th>Added on </th>
+      <td>{{ inator.added }}</td>
+    </tr>
+    <tr>
+      <th>Identifier</th>
+      <td>{{ inator.ident }}</td>
+    </tr>
+    <tr>
+      <th>Condition</th>
+      <td>{{ inator.condition.name }}</td>
+    </tr>
+    <tr>
+      <th>Location</th>
+      <td>{{ inator.location }}</td>
+    </tr>
+    <tr>
+      <th>Description</th>
+      <td>{{ inator.description }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endblock %}

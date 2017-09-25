@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ inator.name }}?{% endblock %}
+
+{% block body %}
+<h1>Are you sure you want to delete {{ inator.name }}?</h1>
+
+<form method="POST">
+  <input class="btn btn-danger" type="submit" value="Yep. Delete it.">
+  <a class="btn btn-primary" href="/">Nope. Get me out of here!</a>
+</form>
+{% endblock %}

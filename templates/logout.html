@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Logout{% endblock %}
+
+{% block body %}
+<h1>Are you sure you want to log out?</h1>
+
+<form method="POST">
+  <input class="btn btn-danger" type="submit" value="Yep. Get me out of here.">
+  <a class="btn btn-primary" href="/">Nope. I want to stay!</a>
+</form>
+{% endblock %}
