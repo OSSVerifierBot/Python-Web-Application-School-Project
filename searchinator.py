@@ -49,30 +49,66 @@ def list_inators(data):
     return inators
 
 
-@app.route('/add/')
+@app.route('/add/', methods=['GET', 'POST'])
+@login_required
 @add_data_param(app.config['DATA_PATH'])
+@uses_template('add-inator.html')
 def add_inator(data):
     """Add a new inator."""
     if request.method == 'GET':
         return {}
     if request.method == 'POST':
+        try:
+            ident = str(uuid.uuid4())    
+            newInator = {
+                'name':request.form['name'],
+                'location':request.form['location'],
+                'description':request.form['description'],
+                'added':datetime.now(), 
+                'ident':ident,
+                'condition':Condition(int(request.form['condition']))
+                }
+        except ValueError:
+            flask.abort(400)
+        
+        data['inators'][ident] = newInator
+        flash('Successfully added an inator.', 'success')
         return redirect(url_for('list_inators'))
 
 
-@app.route('/view/<ident>/')
+@app.route('/view/<ident>/', methods=['GET'])
+@login_required
 @add_data_param(app.config['DATA_PATH'])
+@uses_template('view-inator.html')
 def view_inator(data, ident):
     """View details of an inator."""
-    return {}
+    try:
+        dictInators = data['inators'][ident]
+        return {'inator':dictInators}
+        
+    except KeyError:
+        flash('The requested inator does not exist.', 'danger')
+        return redirect(url_for('list_inators'))
 
 
-@app.route('/delete/<ident>/')
+@app.route('/delete/<ident>/', methods=['GET', 'POST'])
+@login_required
 @add_data_param(app.config['DATA_PATH'])
+@uses_template('delete-inator.html')
 def delete_inator(data, ident):
     """Delete an existing inator."""
+    try:
+        dictInators = data['inators'][ident]
+    except KeyError:
+        flash("oh no")
+        return redirect(url_for('list_inators'))
+    
     if request.method == 'GET':
-        return {}
+        return {'inator':dictInators}
+
     if request.method == 'POST':
+        data['inators'].pop(ident)
+        flash('deleted {}'.format(dictInators['name']), 'success')
         return redirect(url_for('list_inators'))
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -86,6 +122,7 @@ def login(data):
         if 'username' in session:
             flash('You are already logged in. Log out to log in again.', 'danger')
             return redirect(url_for('list_inators'))
+
         username = request.form['username']
         try:
             user = data['users'][username]
@@ -108,7 +145,7 @@ def login(data):
             flash('Incorrect password for user{}.'.format(username), 'danger')
             return redirect(url_for('login'))
 
-@app.route('/logout/')
+@app.route('/logout/', methods=['GET', 'POST'])
 @login_required
 @uses_template('logout.html')
 def logout():
@@ -116,4 +153,6 @@ def logout():
     if request.method == 'GET':
         return {}
     if request.method == 'POST':
+        session.pop('username')
+        flash('You have successfully logged out.', 'danger')
         return redirect(url_for('login'))
