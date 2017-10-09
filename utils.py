@@ -3,6 +3,7 @@ import datetime
 import functools
 import json
 
+
 from flask import flash, redirect, render_template, request, session, url_for
 
 from condition import Condition
@@ -42,20 +43,49 @@ def from_datetime(obj):
         return dump_time(obj)
     raise TypeError("{} is not JSON serializable".format(repr(obj)))
 
-
 def add_data_param(path):
     """Wrap a function to facilitate data storage."""
-    # TODO implement this guy
-    pass
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapper2(*args, **kwargs):
+            # Attmepting to load the file path
+            try:
+                with open(path, 'r') as f:
+                    data = json.loads(f.read(), object_hook=as_inator)
+            # If no file exists, set to an empty dictionary
+            except FileNotFoundError:
+                data = {}
+            retVal = func(data, *args, **kwargs)
+            # Write new data to file
+            with open(path, 'w') as f:
+                f.write(json.dumps(data, default=from_datetime))
+            return retVal
+        return wrapper2
+    return wrapper
 
 
 def uses_template(template):
     """Wrap a function to add HTML template rendering functionality."""
     # TODO implement this guy
-    pass
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapper2(*args, **kwargs):
+            retVal = func(*args, **kwargs)
+            if isinstance(retVal, dict):
+                return render_template(template, **retVal)
+            else:
+                return retVal
+        return wrapper2
+    return wrapper
 
 
 def login_required(func):
     """Wrap a function to enforce user authentication."""
-    # TODO implement this guy
-    pass
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if 'username' in session:
+            return func(*args, **kwargs)
+        else:
+            flash('You must be logged in to access that page.', 'danger')
+            return redirect('/login/')
+    return wrapper
