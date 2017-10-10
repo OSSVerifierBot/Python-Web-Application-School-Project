@@ -22,6 +22,9 @@ import re
 import sys
 import uuid
 
+import operator
+import functools
+
 from condition import Condition
 from utils import from_datetime
 
@@ -197,6 +200,12 @@ def main():
 
     # Print the data as a JSON object
     print(json.dumps(data, indent=4, default=from_datetime))
+
+    return {}
+
+
+def dictValue(data, mapList):
+    return functools.reduce(operator.getitem, mapList, data)
 
 
 if __name__ == '__main__':

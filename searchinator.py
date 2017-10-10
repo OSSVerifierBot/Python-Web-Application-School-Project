@@ -19,20 +19,19 @@ get scared when they see tracebacks.
 
 """
 import uuid
-import functools
-import operator
 
 from flask import abort, Flask, flash, redirect, request, session, url_for
 from datetime import datetime
 
 from utils import add_data_param, uses_template, login_required
 
-#, login_required, uses_template
+# login_required, uses_template
 from condition import Condition
 
 app = Flask(__name__)
 app.secret_key = 'very.secret'
 app.config['DATA_PATH'] = 'inator_data.json'
+
 
 @app.route('/')
 @login_required
@@ -40,13 +39,15 @@ app.config['DATA_PATH'] = 'inator_data.json'
 @uses_template('list-inators.html')
 def list_inators(data):
     """List all inators."""
-    # Sorting inators by name
-    lst = sorted(data['inators'].values(), key = lambda x: x['name'])
-    # Sorting inators by condition
-    lst = sorted(lst, key = lambda x: x['condition'], reverse=True)
-    inators = {'inators':lst}
+    try:
+        # Sorting inators by name
+        lst = sorted(data['inators'].values(), key=lambda x: x['name'])
+        # Sorting inators by condition
+        lst = sorted(lst, key=lambda x: x['condition'], reverse=True)
+        return {'inators': lst}
 
-    return inators
+    except KeyError:
+        return {}
 
 
 @app.route('/add/', methods=['GET', 'POST'])
@@ -59,21 +60,30 @@ def add_inator(data):
         return {}
     if request.method == 'POST':
         try:
-            ident = str(uuid.uuid4())    
+            # Getting random UUID data
+            ident = str(uuid.uuid4())
+            # Creating new dictionary to append to data
             newInator = {
-                'name':request.form['name'],
-                'location':request.form['location'],
-                'description':request.form['description'],
-                'added':datetime.now(), 
-                'ident':ident,
-                'condition':Condition(int(request.form['condition']))
+                'name': request.form['name'],
+                'location': request.form['location'],
+                'description': request.form['description'],
+                'added': datetime.now(),
+                'ident': ident,
+                'condition': Condition(int(request.form['condition']))
                 }
+
         except ValueError:
-            flask.abort(400)
-        
-        data['inators'][ident] = newInator
-        flash('Successfully added an inator.', 'success')
-        return redirect(url_for('list_inators'))
+            # Bad gatway
+            abort(400)
+
+        try:
+            # Make sure the identifier exists and add it to the data
+            data['inators'][ident] = newInator
+            flash('Successfully added {}.'
+                  .format(newInator['name'], 'success'))
+            return redirect(url_for('list_inators'))
+        except KeyError:
+            return redirect(url_for('list_inators'))
 
 
 @app.route('/view/<ident>/', methods=['GET'])
@@ -83,11 +93,13 @@ def add_inator(data):
 def view_inator(data, ident):
     """View details of an inator."""
     try:
+        # Return the dictionary requested
         dictInators = data['inators'][ident]
-        return {'inator':dictInators}
-        
+        return {'inator': dictInators}
+
     except KeyError:
-        flash('The requested inator does not exist.', 'danger')
+        # Error for dictionary not present
+        flash('No such inator with identifier {}.'.format(ident), 'danger')
         return redirect(url_for('list_inators'))
 
 
@@ -98,18 +110,23 @@ def view_inator(data, ident):
 def delete_inator(data, ident):
     """Delete an existing inator."""
     try:
+        # Get the dictionary user wants to delete
         dictInators = data['inators'][ident]
     except KeyError:
-        flash("oh no")
+        flash('No such inator with identifier {}.'
+              .format(ident), 'danger')
         return redirect(url_for('list_inators'))
-    
+
     if request.method == 'GET':
-        return {'inator':dictInators}
+        return {'inator': dictInators}
 
     if request.method == 'POST':
+        # Delete the inator from the data
         data['inators'].pop(ident)
-        flash('deleted {}'.format(dictInators['name']), 'success')
+        flash('Successfully deleted {} ({}).'
+              .format(dictInators['name'], ident, 'success'))
         return redirect(url_for('list_inators'))
+
 
 @app.route('/login/', methods=['GET', 'POST'])
 @add_data_param(app.config['DATA_PATH'])
@@ -119,10 +136,13 @@ def login(data):
     if request.method == 'GET':
         return {}
     if request.method == 'POST':
+        # Make sure user isnt already logged in
         if 'username' in session:
-            flash('You are already logged in. Log out to log in again.', 'danger')
-            return redirect(url_for('list_inators'))
+            flash('You are already logged in.' +
+                  'Log out to log in again.', 'danger')
+            return redirect(url_for('login'))
 
+        # look for the username
         username = request.form['username']
         try:
             user = data['users'][username]
@@ -130,20 +150,24 @@ def login(data):
             flash('Cannot find user {}. Try again.'.format(username), 'danger')
             return redirect(url_for('login'))
 
+        # Look for the password
         try:
             correct_password = user['password']
         except KeyError:
-            flash('Cannot find password for user{}!'.format(username), 'danger')
+            flash('Cannot find password for user {}!'
+                  .format(username), 'danger')
             return redirect(url_for('login'))
 
+        # Verify the password with the username
         password = request.form['password']
         if password == correct_password:
             session['username'] = username
             flash('Successfully logged in as {}.'.format(username), 'success')
             return redirect(url_for('list_inators'))
         else:
-            flash('Incorrect password for user{}.'.format(username), 'danger')
+            flash('Incorrect password for user {}.'.format(username), 'danger')
             return redirect(url_for('login'))
+
 
 @app.route('/logout/', methods=['GET', 'POST'])
 @login_required
@@ -152,7 +176,9 @@ def logout():
     """Logout of the searchinator."""
     if request.method == 'GET':
         return {}
+
+    # Remove the username from the session, logging user out
     if request.method == 'POST':
         session.pop('username')
-        flash('You have successfully logged out.', 'danger')
+        flash('Successfully logged out.', 'danger')
         return redirect(url_for('login'))
