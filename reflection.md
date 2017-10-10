@@ -1,4 +1,4 @@
-earchinator for Taylor Hasty
+Python 4: Searchinator for Taylor Hasty
 -----------------------------------------------------
 
 This assignement was definitely tough. To be honest,
