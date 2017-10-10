@@ -4,7 +4,7 @@ import functools
 import json
 
 
-from flask import flash, redirect, render_template, request, session, url_for
+from flask import flash, redirect, render_template, session
 
 from condition import Condition
 
@@ -43,6 +43,7 @@ def from_datetime(obj):
         return dump_time(obj)
     raise TypeError("{} is not JSON serializable".format(repr(obj)))
 
+
 def add_data_param(path):
     """Wrap a function to facilitate data storage."""
     def wrapper(func):
@@ -51,13 +52,16 @@ def add_data_param(path):
             # Attmepting to load the file path
             try:
                 with open(path, 'r') as f:
+                    # Reading and storing the data
                     data = json.loads(f.read(), object_hook=as_inator)
             # If no file exists, set to an empty dictionary
             except FileNotFoundError:
                 data = {}
+            # Running the function
             retVal = func(data, *args, **kwargs)
             # Write new data to file
             with open(path, 'w') as f:
+                # Writing back into the file to store
                 f.write(json.dumps(data, default=from_datetime))
             return retVal
         return wrapper2
@@ -66,12 +70,13 @@ def add_data_param(path):
 
 def uses_template(template):
     """Wrap a function to add HTML template rendering functionality."""
-    # TODO implement this guy
     def wrapper(func):
         @functools.wraps(func)
         def wrapper2(*args, **kwargs):
+            # Return the function
             retVal = func(*args, **kwargs)
             if isinstance(retVal, dict):
+                # Format the data to the template
                 return render_template(template, **retVal)
             else:
                 return retVal
@@ -84,8 +89,10 @@ def login_required(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if 'username' in session:
+            # Return the function if the username is found
             return func(*args, **kwargs)
         else:
+            # Redirecting to the login page
             flash('You must be logged in to access that page.', 'danger')
             return redirect('/login/')
     return wrapper
