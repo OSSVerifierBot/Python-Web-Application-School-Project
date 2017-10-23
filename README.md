@@ -4,3 +4,6 @@ delete/display a list of "inators" on a web page. Inators are simply pieces of d
 with different attributes that can be changed. The program also uses decorators
 to provide different functionality. 
 
+
+The decorators were written in the file utils.py and they were implemented 
+in searchinator.py. 
